@@ -14,7 +14,7 @@
       </div>
     </transition-group>
     <div class="extra-container">
-      <div><label for=""><input type="checkbox" :checked="!anyRemaining" @change="checkAllTodos">Check All</label></div>
+      <div><label><input type="checkbox" :checked="!anyRemaining" @change="checkAllTodos">Check All</label></div>
       <div>{{ remaining }} items left</div>
     </div>
 
@@ -47,41 +47,41 @@ export default {
           'id': 1,
           'title': 'Finish Vue screencast',
           'completed': false,
-          'editing': false,
+          'editing': false
         },
         {
           'id': 2,
           'title': 'Take over world',
           'completed': false,
-          'editing': false,
+          'editing': false
         }
       ]
     }
   },
   computed: {
-    remaining() {
+    remaining () {
       return this.todos.filter(todo => !todo.completed).length
     },
-    anyRemaining(){
+    anyRemaining () {
       return this.remaining !== 0
     },
-    todosFiltered(){
-      if(this.filter == 'all'){
+    todosFiltered () {
+      if (this.filter == 'all') {
         return this.todos
-      } else if (this.filter == 'active'){
-        return this.todos.filter(todo => !todo.completed)
-      } else if (this.filter == 'completed'){
-        return this.todos.filter(todo => todo.completed)
+      } else if (this.filter == 'active') {
+        return this.todos.filter(todo => !todo.completed);
+      } else if (this.filter == 'completed') {
+        return this.todos.filter(todo => todo.completed);
       }
-      return this.todos
+      return this.todos;
     },
-    showClearCompletedButton() {
-      return this.todos.filter(todo => todo.completed).length > 0
+    showClearCompletedButton () {
+      return this.todos.filter(todo => todo.completed).length > 0;
     }
   },
-  directives:{
-    focus:{
-      inserted: function (el){
+  directives: {
+    focus: {
+      inserted: function (el) {
         el.focus()
       }
     }
@@ -95,24 +95,24 @@ export default {
         id: this.idForTodo,
         title: this.newTodo,
         completed: false
-      })
+      });
 
-      this.newTodo = ''
+      this.newTodo = '',
       this.idForTodo++
     },
     editTodo(todo){
-      this.beforeEditCache = todo.title
-      todo.editing = true
+      this.beforeEditCache = todo.title;
+      todo.editing = true;
     },
     doneEdit(todo){
       if(todo.title.trim().length == ''){
-        todo.title = this.beforeEditCache
+        todo.title = this.beforeEditCache;
       }
-      todo.editing = false
+      todo.editing = false;
     },
     cancelEdit(todo){
-      todo.title = this.beforeEditCache
-      todo.editing = false
+      todo.title = this.beforeEditCache;
+      todo.editing = false;
     },
     removeTodo(index) {
 
@@ -120,10 +120,10 @@ export default {
       console.log(this.todos);
     },
     checkAllTodos(){
-      this.todos.forEach((todo) => todo.completed = event.target.checked)
+      this.todos.forEach((todo) => todo.completed = event.target.checked);
     },
     clearCompleted(){
-      this.todos = this.todos.filter(todo => !todo.completed)
+      this.todos = this.todos.filter(todo => !todo.completed);
     }
   }
 }
