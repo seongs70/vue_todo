@@ -7,19 +7,18 @@
 </template>
 
 <script>
-  export default {
-      name: 'todo-filtered',
-      data() {
-          return{
-              'filter': 'all',
-          }
-      },
-      methods: {
-        changeFilter(filter) {
-            console.log(filter);
-            this.filter = filter;
-            eventBus.$emit('filterChanged',filter);
-        }
-      }
+export default {
+  name: 'todo-filtered',
+  computed: {
+    filter() {
+      return this.$store.state.filter
+    }
+  },
+  methods: {
+    changeFilter(filter) {
+      this.$store.dispatch('updateFilter', filter)
+    }
   }
+}
 </script>
+
