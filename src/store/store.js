@@ -1,7 +1,9 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import axios from 'axios'
 
 Vue.use(Vuex)
+axios.defaults.baseURL = 'http://127.0.0.1:8000'
 
 export const store = new Vuex.Store({
   state: {
@@ -71,6 +73,13 @@ export const store = new Vuex.Store({
       state.filter = filter
     },
     clearCompleted(state) {
+      axios.get('/todos')
+        .then(response => {
+          console.log(response)
+        })
+        .catch(error => {
+          console.log(error)
+        })
       state.todos = state.todos.filter(todo => !todo.completed)
     }
   },
