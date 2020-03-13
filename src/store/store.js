@@ -40,6 +40,7 @@ export const store = new Vuex.Store({
         id: todo.id,
         title: todo.title,
         completed: false,
+        timestamp: new Date(),
         editing: false,
       })
     },
@@ -54,7 +55,11 @@ export const store = new Vuex.Store({
     },
     deleteTodo(state, id) {
       const index = state.todos.findIndex(item => item.id == id)
-      state.todos.splice(index, 1)
+
+      if (index > 0) {
+        state.todos.splice(index, 1)
+      }
+
     },
     checkAll(state, checked) {
       state.todos.forEach(todo => (todo.completed = checked))
@@ -71,17 +76,31 @@ export const store = new Vuex.Store({
     }
   },
   actions: {
-    initRealtimeListenrs(context){
+    iniRealTimeListeners(context){
       db.collection("todos").onSnapshot(snapshot => {
           snapshot.docChanges().forEach(change => {
             if (change.type === "added") {
-              console.log("Added", change.doc.data());
+              // console.log("Added", change.doc.data());
+              const source = change.doc.metadata.hasPendingWrites ? "Local" : "Server";
+
+              if(source === 'Server') {
+                context.commit('addTodo',{
+                  id: change.doc.id,
+                  title: change.doc.data().title,
+                  completed:false,
+                })
+              }
+
             }
             if (change.type === "modified") {
-              console.log("Updated", change.doc.data());
+              context.commit('updateTodo', {
+                id: change.doc.id,
+                title: change.doc.data().title,
+                completed: change.doc.data().completed,
+              })
             }
             if (change.type === "removed") {
-              console.log("Removed", change.doc.data());
+              context.commit('deleteTodo', change.doc.id)
             }
           });
         });
@@ -130,8 +149,8 @@ export const store = new Vuex.Store({
         id: todo.id,
         title: todo.title,
         completed: todo.completed,
-        timestamp: new Date(),
-      })
+        // timestamp: new Date(),
+      }, { merge:true })
         .then(() => {
           context.commit('updateTodo', todo);
         })
