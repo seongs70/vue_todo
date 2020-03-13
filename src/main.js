@@ -3,6 +3,7 @@
 import Vue from 'vue'
 import App from './App'
 import { store } from './store/store'
+import firebase from './firebase'
 
 window.eventBus = new Vue()
 
