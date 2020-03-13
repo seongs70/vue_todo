@@ -49,6 +49,7 @@ export default {
     }
   },
   created() {
+    this.$store.dispatch('iniRealTimeListeners')
     this.$store.dispatch('retrieveTodos')
   },
   computed: {

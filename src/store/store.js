@@ -71,6 +71,21 @@ export const store = new Vuex.Store({
     }
   },
   actions: {
+    initRealtimeListenrs(context){
+      db.collection("todos").onSnapshot(snapshot => {
+          snapshot.docChanges().forEach(change => {
+            if (change.type === "added") {
+              console.log("Added", change.doc.data());
+            }
+            if (change.type === "modified") {
+              console.log("Updated", change.doc.data());
+            }
+            if (change.type === "removed") {
+              console.log("Removed", change.doc.data());
+            }
+          });
+        });
+    },
     retrieveTodos(context){
       context.state.loading = true
       db.collection('todos').get()
