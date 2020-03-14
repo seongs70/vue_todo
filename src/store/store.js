@@ -1,17 +1,27 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios'
-import db from '../firebase'
-
 
 Vue.use(Vuex)
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api'
 
 export const store = new Vuex.Store({
   state: {
-    loading:true,
     filter: 'all',
-    todos: []
+    todos: [
+      // {
+      //   'id': 1,
+      //   'title': 'Finish Vue Screencast',
+      //   'completed': false,
+      //   'editing': false,
+      // },
+      // {
+      //   'id': 2,
+      //   'title': 'Take over world',
+      //   'completed': false,
+      //   'editing': false,
+      // },
+    ]
   },
   getters: {
     remaining(state) {
@@ -40,7 +50,6 @@ export const store = new Vuex.Store({
         id: todo.id,
         title: todo.title,
         completed: false,
-        timestamp: new Date(),
         editing: false,
       })
     },
@@ -55,11 +64,7 @@ export const store = new Vuex.Store({
     },
     deleteTodo(state, id) {
       const index = state.todos.findIndex(item => item.id == id)
-
-      if (index > 0) {
-        state.todos.splice(index, 1)
-      }
-
+      state.todos.splice(index, 1)
     },
     checkAll(state, checked) {
       state.todos.forEach(todo => (todo.completed = checked))
@@ -76,116 +81,80 @@ export const store = new Vuex.Store({
     }
   },
   actions: {
-    iniRealTimeListeners(context){
-      db.collection("todos").onSnapshot(snapshot => {
-          snapshot.docChanges().forEach(change => {
-            if (change.type === "added") {
-              // console.log("Added", change.doc.data());
-              const source = change.doc.metadata.hasPendingWrites ? "Local" : "Server";
-
-              if(source === 'Server') {
-                context.commit('addTodo',{
-                  id: change.doc.id,
-                  title: change.doc.data().title,
-                  completed:false,
-                })
-              }
-
-            }
-            if (change.type === "modified") {
-              context.commit('updateTodo', {
-                id: change.doc.id,
-                title: change.doc.data().title,
-                completed: change.doc.data().completed,
-              })
-            }
-            if (change.type === "removed") {
-              context.commit('deleteTodo', change.doc.id)
-            }
-          });
-        });
-    },
     retrieveTodos(context){
-      context.state.loading = true
-      db.collection('todos').get()
-        .then(querySnapshot => {
-          let tempTodos = []
-          querySnapshot.forEach(doc =>{
-            // console.log(doc.data())
-            const data = {
-              id: doc.id,
-              title: doc.data().title,
-              completed: doc.data().completed,
-              timestamp: doc.data().timestamp,
-            }
-            // console.log(data);
-            tempTodos.push(data)
+      axios.get('/todos')
+        .then(response => {
+          context.commit('retrieveTodos', response.data)
         })
-          context.state.loading = false
-          const tempTodoSorted = tempTodos.sort((a,b) => {
-
-            return a.timestamp.seconds - b.timestamp.seconds
-          })
-
-          context.commit('retrieveTodos', tempTodoSorted)
-    })
+        .catch(error => {
+          console.log(error)
+        })
     },
     addTodo(context, todo) {
-      db.collection('todos').add({
+      axios.post('/todos', {
         title: todo.title,
-        completed:false,
-        timestamp: new Date(),
+        completed: false,
       })
-        .then(docRef => {
-          context.commit('addTodo',{
-            id: docRef.id,
-            title: todo.title,
-            completed: false,
-          })
+        .then(response => {
+          context.commit('addTodo', response.data)
+        })
+        .catch(error => {
+          console.log(error)
         })
     },
     updateTodo(context, todo) {
-      db.collection('todos').doc(todo.id).set({
-        id: todo.id,
+      axios.patch('/todos/' + todo.id, {
         title: todo.title,
         completed: todo.completed,
-        // timestamp: new Date(),
-      }, { merge:true })
-        .then(() => {
-          context.commit('updateTodo', todo);
+      })
+        .then(response => {
+          context.commit('updateTodo', response.data)
         })
+        .catch(error => {
+          console.log(error)
+        })
+
     },
     deleteTodo(context, id) {
-      db.collection('todos').doc(id).delete()
-        .then(() => {
+      axios.delete('/todos/' + id)
+        .then(response => {
           context.commit('deleteTodo', id)
         })
+        .catch(error => {
+          console.log(error)
+        })
+
     },
     checkAll(context, checked) {
-      db.collection('todos').get()
-        .then(querySnapshot => {
-          querySnapshot.forEach(doc => {
-            doc.ref.update({
-              completed:checked
-            })
-            .then(() => {
-              context.commit('checkAll', checked)
-            })
+      axios.patch('/todosCheckAll',{
+        completed: checked,
+      })
+        .then(response => {
+          context.commit('checkAll', checked)
         })
-    })
+        .catch(error => {
+          console.log(error)
+        })
+      context.commit('checkAll', checked)
     },
     updateFilter(context, filter) {
         context.commit('updateFilter', filter)
     },
     clearCompleted(context) {
-      db.collection('todos').where('completed', '==', true).get()
-        .then(querySnapshot => {
-          querySnapshot.forEach(doc => {
-            doc.ref.delete()
-              .then(() => {
-                context.commit('clearCompleted')
-              })
-          })
+      const completed = context.state.todos
+        .filter(todo => todo.completed)
+        .map(todo => todo.id)
+
+      axios.delete('/todosDeleteCompleted', {
+        data: {
+          todos: completed
+        }
+      })
+        .then(response => {
+          context.commit('clearCompleted')
+        })
+        .catch(error => {
+          console.log(error)
         })
     }
   }
