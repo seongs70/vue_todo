@@ -7,6 +7,7 @@ axios.defaults.baseURL = 'http://127.0.0.1:8000/api'
 
 export const store = new Vuex.Store({
   state: {
+    token: localStorage.getItem('access_token') || null,
     filter: 'all',
     todos: [
       // {
@@ -24,6 +25,9 @@ export const store = new Vuex.Store({
     ]
   },
   getters: {
+    loggedIn(state) {
+      return state.token !== null
+    },
     remaining(state) {
       return state.todos.filter(todo => !todo.completed).length
     },
@@ -78,10 +82,75 @@ export const store = new Vuex.Store({
     },
     retrieveTodos(state, todos){
       state.todos = todos
+    },
+    retrieveToken(state, token) {
+
+      state.token = token
+    },
+    destroyToken(state) {
+      state.token = null
     }
   },
   actions: {
-    retrieveTodos(context){
+    register(context, data) {
+      return new Promise((resolve, reject) =>{
+        axios.post('/register',{
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          confirm_password: data.confirm_password,
+        })
+          .then(response => {
+            resolve(response)
+          })
+          .catch(error => {
+            localStorage.removeItem('access_token')
+            context.commit('destroyToken')
+            reject(error)
+          })
+      })
+    },
+    destroyToken(context) {
+      axios.defaults.headers.common['Authorization'] = 'Bearer ' + context.state.token
+
+      if(context.getters.loggedIn) {
+        return new Promise((resolve, reject) =>{
+          axios.post('/logout')
+            .then(response => {
+              localStorage.removeItem('access_token')
+              context.commit('destroyToken')
+              resolve(response)
+            })
+            .catch(error => {
+              localStorage.removeItem('access_token')
+              context.commit('destroyToken')
+              reject(error)
+            })
+        })
+      }
+    },
+    retrieveToken(context, credentials) {
+
+      return new Promise((resolve, reject) =>{
+
+
+        axios.post('/login', {
+          email: credentials.username,
+          password: credentials.password,
+        })
+          .then(response => {
+            const token = response.data.access_token
+            localStorage.setItem('access_token', token)
+            context.commit('retrieveToken', token)
+            resolve(response)
+          })
+          .catch(error => {
+            console.log(error)
+            reject(error)
+          })
+      })
+    },
+    retrieveTodos(context) {
       axios.get('/todos')
         .then(response => {
           context.commit('retrieveTodos', response.data)
@@ -126,7 +195,7 @@ export const store = new Vuex.Store({
 
     },
     checkAll(context, checked) {
-      axios.patch('/todosCheckAll',{
+      axios.patch('/todosCheckAll', {
         completed: checked,
       })
         .then(response => {
@@ -138,7 +207,7 @@ export const store = new Vuex.Store({
       context.commit('checkAll', checked)
     },
     updateFilter(context, filter) {
-        context.commit('updateFilter', filter)
+      context.commit('updateFilter', filter)
     },
     clearCompleted(context) {
       const completed = context.state.todos
