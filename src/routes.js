@@ -3,7 +3,7 @@ import About from "./components/marketing/About";
 import Login from "./components/auth/Login";
 import Logout from "./components/auth/Logout";
 import Register from "./components/auth/Register";
-import TestTodosVariable from "./components/marketing/TestTodosVariable";
+
 import App from "./App";
 
 const routes = [
@@ -29,6 +29,7 @@ const routes = [
     path: '/login',
     name: 'login',
     component:Login,
+    props: true,
     meta: {
       requiresVisitor: true,
     }

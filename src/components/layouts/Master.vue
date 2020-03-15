@@ -1,10 +1,7 @@
 <template>
   <div id="app">
     <ul class="nav">
-<!--      <li><a href="/">Home</a></li>-->
-<!--      <li><a href="/about">About</a></li>-->
-<!--      <li><a href="/login">Login</a></li>-->
-<!--      <li><a href="/register">Register</a></li>-->
+
       <li><router-link :to="{ name: 'home'}">Home</router-link></li>
       <li><router-link :to="{ name: 'todo'}">App</router-link></li>
       <li><router-link :to="{ name: 'about'}">About</router-link></li>
@@ -13,7 +10,12 @@
       <li v-if="loggedIn"><router-link :to="{ name: 'logout'}">Logout</router-link></li>
 
     </ul>
-    <router-view></router-view>
+
+    <transition name="router-animation" enter-active-class="animated fadeIn"
+    leave-active-class="animated fadeOut" mode="out-in">
+      <router-view></router-view>
+    </transition>
+
   </div>
 
 
@@ -28,7 +30,9 @@
     }
   }
 </script>
-<style>
+<style lang="scss">
+  @import url("https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css");
+  @import url('cxlt-vue2-toastr/dist/css/cxlt-vue2-toastr.css');
   * {
     box-sizing: border-box;
     margin: 0;
@@ -173,6 +177,14 @@
     100% {
       transform: rotate(360deg);
     }
+  }
+  .server-error{
+    margin-bottom:12px;
+    font-size:16px;
+    color:#a94442;
+    padding:10px 16px;
+    background:#F#DEDE;
+    border-radius: 4px;
   }
 
 </style>
